@@ -24,6 +24,8 @@ pacman/
 │── Makefile // Optional build file
 └── README.md
 
+---
+
 ## Controls
 
 | Key | Action        |
