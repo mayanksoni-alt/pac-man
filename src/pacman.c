@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/select.h>
 #include <time.h>
+#include "pacman.h"
 
 #define R 15
 #define C 30
