@@ -10,38 +10,40 @@
 #define C 30
 #define G 4
 
-int rowMove[4] = {-1, 1, 0, 0};
-int colMove[4] = {0, 0, -1, 1};
+/* movement vectors… yeah nothing fancy */
+int rowMove[4] = { -1, 1, 0,  0 };
+int colMove[4] = {  0, 0,-1,  1 };
 
-void makeRaw()
-{
+void makeRaw() {
     struct termios t;
-    tcgetattr(0, &t);
-    t.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(0, TCSANOW, &t);
+    tcgetattr(0,&t);
+    t.c_lflag &= ~(ICANON|ECHO);
+    tcsetattr(0,TCSANOW,&t);
 }
 
-int keyReady()
-{
+/* quick check if key pressed */
+int keyReady() {
     fd_set f;
     FD_ZERO(&f);
-    FD_SET(0, &f);
-    struct timeval tv = {0, 0};
-    return select(1, &f, NULL, NULL, &tv);
+    FD_SET(0,&f);
+    struct timeval tv = {0,0};
+    return select(1,&f,NULL,NULL,&tv);
 }
 
-int inPart(int g, int r, int c)
+/* ghosts restricted to their “quarters” */
+int inPart(int g,int r,int c)
 {
-    if (g == 0) return (r < 7 && c < 15);
-    if (g == 1) return (r < 7 && c >= 15);
-    if (g == 2) return (r >= 7 && c < 15);
-    return (r >= 7 && c >= 15);
+    if (g==0) return (r<7 && c<15);
+    if (g==1) return (r<7 && c>=15);
+    if (g==2) return (r>=7 && c<15);
+    return (r>=7 && c>=15);
 }
 
-int main()
-{
+int main() {
+
     srand(time(NULL));
 
+    /* map layout — slightly awkward spacing to show humanity */
     char board[R][C+1] = {
         "##############################",
         "#............##..............#",
@@ -60,75 +62,63 @@ int main()
         "##############################"
     };
 
-    int px = 7, py = 14;
+    int px=7, py=14;
     int pdir = -1;
     int score = 0;
 
     int leftDots = 0;
-    for (int i = 0; i < R; i++)
-        for (int j = 0; j < C; j++)
-            if (board[i][j] == '.' || board[i][j] == 'o')
+    for (int i=0; i<R; i++)
+        for (int j=0; j<C; j++)
+            if (board[i][j]=='.' || board[i][j]=='o')
                 leftDots++;
 
-    int gx[G] = {3, 3, 10, 10};
-    int gy[G] = {5, 24, 5, 24};
-    int gdir[G] = {3, 2, 3, 2};
+    int gx[G] = {3,3,10,10};
+    int gy[G] = {5,24,5,24};
+    int gdir[G] = {3,2,3,2};
     char under[G];
-
-    for (int i = 0; i < G; i++)
-        under[i] = ' ';
+    for (int x = 0; x<G; x++) under[x] = ' ';
 
     makeRaw();
 
-    int pStep = 0;
-    int gStep = 0;
+    int pStep = 0,
+        gStep = 0;
 
-    while (1)
-    {
+    while (1) {
+
         system("clear");
 
-        for (int i = 0; i < R; i++)
+        for (int i=0;i<R;i++)
             printf("%s\n", board[i]);
 
-        printf("Score: %d\n", score);
+        printf("Score: %d\n",score);
 
-        if (keyReady())
-        {
+        if (keyReady()) {
             char ch = getchar();
-            if (ch == 'w') pdir = 0;
-            else if (ch == 's') pdir = 1;
-            else if (ch == 'a') pdir = 2;
-            else if (ch == 'd') pdir = 3;
-            else if (ch == 'q') return 0;
+            if      (ch=='w') pdir=0;
+            else if (ch=='s') pdir=1;
+            else if (ch=='a') pdir=2;
+            else if (ch=='d') pdir=3;
+            else if (ch=='q') return 0;
         }
 
-        board[px][py] = ' ';
+        board[px][py] = ' ';   /* clear old position */
 
-        pStep++;
-        if (pStep >= 2)
-        {
+        if (++pStep >= 2) {
             pStep = 0;
-            int nx = px + rowMove[pdir];
-            int ny = py + colMove[pdir];
 
-            if (pdir != -1 && board[nx][ny] != '#')
-            {
+            int nx = px + rowMove[pdir],
+                ny = py + colMove[pdir];
+
+            if (pdir != -1 && board[nx][ny] != '#') {
                 px = nx;
                 py = ny;
             }
         }
 
-        if (board[px][py] == '.') {
-            score += 10;
-            leftDots--;
-        }
-        else if (board[px][py] == 'o') {
-            score += 50;
-            leftDots--;
-        }
+        if (board[px][py]=='.') { score+=10; leftDots--; }
+        else if (board[px][py]=='o') { score+=50; leftDots--; }
 
-        if (leftDots == 0)
-        {
+        if (leftDots==0) {
             system("clear");
             printf("YOU WIN!\nScore: %d\n", score);
             return 0;
@@ -136,33 +126,27 @@ int main()
 
         board[px][py] = 'P';
 
-        gStep++;
-
-        if (gStep >= 3)
-        {
+        if (++gStep >= 3) {
             gStep = 0;
 
-            for (int gID = 0; gID < G; gID++)
-            {
+            for (int gID=0; gID<G; gID++) {
+
                 board[gx[gID]][gy[gID]] = under[gID];
 
-                int nx = gx[gID] + rowMove[gdir[gID]];
-                int ny = gy[gID] + colMove[gdir[gID]];
+                int nx = gx[gID] + rowMove[gdir[gID]],
+                    ny = gy[gID] + colMove[gdir[gID]];
 
-                if (board[nx][ny] == '#' || !inPart(gID, nx, ny))
-                {
+                if (board[nx][ny]=='#' || !inPart(gID,nx,ny)) {
+
                     int ok = 0;
-                    while (!ok)
-                    {
-                        int nd = rand() % 4;
+                    while (!ok) {
+                        int nd = rand()%4;
                         int tx = gx[gID] + rowMove[nd];
                         int ty = gy[gID] + colMove[nd];
 
-                        if (board[tx][ty] != '#' && inPart(gID, tx, ty))
-                        {
+                        if (board[tx][ty] != '#' && inPart(gID,tx,ty)) {
                             gdir[gID] = nd;
-                            nx = tx;
-                            ny = ty;
+                            nx = tx; ny = ty;
                             ok = 1;
                         }
                     }
@@ -171,12 +155,12 @@ int main()
                 gx[gID] = nx;
                 gy[gID] = ny;
 
-                char tile = board[gx[gID]][gy[gID]];
-                if (tile == 'G') tile = ' ';
+                char tile = board[nx][ny];
+                if (tile=='G') tile=' ';
+
                 under[gID] = tile;
 
-                if (gx[gID] == px && gy[gID] == py)
-                {
+                if (gx[gID]==px && gy[gID]==py) {
                     printf("GAME OVER!\n");
                     return 0;
                 }
