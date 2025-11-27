@@ -1,4 +1,4 @@
-# Sap Id: 590026574
+SAPID:590026574
 ---
 # Terminal Pac-Man Game (C Language)
 
