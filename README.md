@@ -1,3 +1,5 @@
+# Sap Id: 590026574
+---
 # Terminal Pac-Man Game (C Language)
 
 This project is a simple Pac-Man style game written in C, designed to run directly inside a Linux or macOS terminal. It uses real-time keyboard input, basic ghost movement logic, and a fixed 15x30 game board.
